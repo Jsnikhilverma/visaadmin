@@ -1,5 +1,4 @@
 import {
-  Card,
   Input,
   Checkbox,
   Button,

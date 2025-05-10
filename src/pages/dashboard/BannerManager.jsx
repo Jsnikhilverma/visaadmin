@@ -35,7 +35,7 @@ const BannerManager = () => {
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/admin/get-banners`,
+        `${import.meta.env.VITE_BASE_URL}admin/get-banners`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -90,7 +90,7 @@ const BannerManager = () => {
       if (image) formData.append("image", image);
 
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/create-banner`,
+        `${import.meta.env.VITE_BASE_URL}admin/create-banner`,
         formData,
         {
           headers: {
@@ -116,7 +116,7 @@ const BannerManager = () => {
   const toggleStatus = async (id) => {
     try {
       await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/admin/banner-status/${id}`,
+        `${import.meta.env.VITE_BASE_URL}admin/banner-status/${id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -141,7 +141,7 @@ const BannerManager = () => {
     try {
 
       await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/admin/delete-banner/${id}`,
+        `${import.meta.env.VITE_BASE_URL}admin/delete-banner/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showSuccessToast("Banner deleted successfully");

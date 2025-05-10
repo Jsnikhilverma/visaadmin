@@ -69,7 +69,7 @@ function Vendors() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_BASE_URL}/admin/get-all-users`,
+          `${import.meta.env.VITE_BASE_URL}admin/get-all-users`,
           body,
           {
             headers: {
@@ -98,7 +98,7 @@ function Vendors() {
 
   const deleteLead = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_BASE_URL}/leads/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}leads/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeads(leads.filter((lead) => lead.id !== id));

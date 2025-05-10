@@ -32,10 +32,10 @@ const Dashboard = () => {
           {/* Redirect /dashboard to /dashboard/home */}
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/user-detail/:id" element={<UserDetail />} />
-          <Route path="/audio-detail/:id" element={<AudiobookDetail />} />
-          <Route path="/video-detail/:id" element={<VideoDetail />} />
+          <Route path="/kyc-detail/:id" element={<AudiobookDetail />} />
+          <Route path="/visa-detail/:id" element={<VideoDetail />} />
           <Route path="/testimonials-detail/:id" element={<TestimonailDetail />} />
-          <Route path="/audio-package-detail/:id" element={<AudioPackageDetail />} />
+          <Route path="/apply-passports-detail/:id" element={<AudioPackageDetail />} />
 
           {routes.map(({ layout, pages }) =>
             layout === "dashboard"

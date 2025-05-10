@@ -27,7 +27,7 @@ function AddnewSubscriber() {
   const fetchProfessionals = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/get-all-professionals`,
+        `${import.meta.env.VITE_BASE_URL}get-all-professionals`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setProfessionals(response.data.data);
@@ -76,7 +76,7 @@ function AddnewSubscriber() {
 
     try {
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/add-subscriber`,
+        `${import.meta.env.VITE_BASE_URL}add-subscriber`,
         user,
         {
           headers: {

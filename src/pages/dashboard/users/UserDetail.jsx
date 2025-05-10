@@ -32,7 +32,7 @@ const UserDetail = () => {
   
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_BASE_URL}/upload`,
+          `${import.meta.env.VITE_BASE_URL}upload`,
           formData,
           {
             headers: {
@@ -61,7 +61,7 @@ const UserDetail = () => {
         }
 
         const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/admin/users/${id}`,
+          `${import.meta.env.VITE_BASE_URL}admin/users/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -110,7 +110,7 @@ const UserDetail = () => {
       if (imageFile) payload.image = imageFile; // Assuming this is just a string or path
 
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/user/profile/${id}`,
+        `${import.meta.env.VITE_BASE_URL}admin/user/profile/${id}`,
         payload,
         {
           headers: {
@@ -146,7 +146,7 @@ const UserDetail = () => {
       }
 
          axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/user/password/${id}`,
+        `${import.meta.env.VITE_BASE_URL}admin/user/password/${id}`,
         {
           password: password,
         },

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Button,
+  // Button,
   Card,
   CardBody,
-  CardFooter,
+  // CardFooter,
   CardHeader,
-  IconButton,
+  // IconButton,
   Spinner,
   Tooltip,
   Typography,
@@ -21,8 +21,8 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 function Users() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [totalPages, setTotalPages] = useState(1);x
   const token = Cookies.get("token");
   // const [open, setOpen] = useState(false);
   // const [bidId, setBidId] = useState(null);
@@ -58,13 +58,13 @@ function Users() {
   const navigate = useNavigate(); // Initialize navigate
 
   const fetchLeads = useCallback(
-    async (page) => {
+    async () => {
       if (!token) return;
   
       setLoading(true);
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/admin/users?page=${page}&limit=10`,
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}admin/allusers/users`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -72,9 +72,9 @@ function Users() {
             },
           }
         );
-        console.log("leads", data.users);
-        setLeads(data.users); // ← updated here
-        setTotalPages(data.meta.totalPages); // ← updated here
+        console.log("leads", res.data);
+        setLeads(res.data); // ← updated here
+        // setTotalPages(data.meta.totalPages); // ← updated here
       } catch (error) {
         console.error("Error fetching leads:", error);
       } finally {
@@ -86,14 +86,14 @@ function Users() {
 
   
   useEffect(() => {
-    if (token) fetchLeads(currentPage);
-  }, [token, currentPage, fetchLeads]);
+    if (token) fetchLeads(1);
+  }, [token, fetchLeads]);
 
   
 
   const deleteLead = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_BASE_URL}/admin/users/delete/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}admin/users/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeads(leads.filter((lead) => lead.id !== id));
@@ -134,9 +134,9 @@ function Users() {
       width: "w-48",
     },
     {
-      key: "phone",
+      key: "mobile",
       label: "Mobile",
-      render: (row) => <div>{row.phone || "N/A"}</div>,
+      render: (row) => <div>{row.mobile || "N/A"}</div>,
       width: "w-40",
     },
     {
@@ -145,17 +145,17 @@ function Users() {
       render: (row) => <div>{row.email || "N/A"}</div>,
       width: "w-60",
     },
+    {
+      key: "address",
+      label: "Address",
+      render: (row) => <div>{row.address || "N/A"}</div>,
+      width: "w-60",
+    },
     // {
-    //   key: "dob",
-    //   label: "DOB",
-    //   render: (row) => <div>{row.dob || "N/A"}</div>,
-    //   width: "w-32",
-    // },
-    // {
-    //   key: "gender",
-    //   label: "Gender",
-    //   render: (row) => <div>{row.gender || "N/A"}</div>,
-    //   width: "w-32",
+    //   key: "passportNumber",
+    //   label: "Passport Number",
+    //   render: (row) => <div>{row.passportNumber || "N/A"}</div>,
+    //   width: "w-60",
     // },
     {
       key: "actions",
@@ -163,12 +163,12 @@ function Users() {
       render: (row) => (
         <div className="flex gap-2">
           <Tooltip content="Edit">
-            <button onClick={() => handleEdit(row.id)}>
+            <button onClick={() => handleEdit(row._id)}>
               <PencilIcon className="h-5 w-5 text-blue-500" />
             </button>
           </Tooltip>
           <Tooltip content="Delete">
-            <button onClick={() => deleteLead(row.id)}>
+            <button onClick={() => deleteLead(row._id)}>
               <TrashIcon className="h-5 w-5 text-red-500" />
             </button>
           </Tooltip>
@@ -206,7 +206,7 @@ function Users() {
         )}
       </CardBody>
 
-      <CardFooter className="flex justify-between">
+      {/* <CardFooter className="flex justify-between">
         <Button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
@@ -267,7 +267,7 @@ function Users() {
           Next
         </Button>
       </CardFooter>
-    
+     */}
       {/* <AddCustomBid open={open} handleOpen={handleOpen} bidId={bidId} /> */}
     </Card>
   );

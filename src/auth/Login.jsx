@@ -28,7 +28,7 @@ const Login = () => {
       };
 
       const res = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/auth/admin/login`,
+        `${import.meta.env.VITE_BASE_URL}admin/login`,
         // formData,
         payload,
         {
@@ -37,9 +37,9 @@ const Login = () => {
         }
       );
       console.log("Response:", res.data);
-      if (res.data.status === 200) {
+      if (res.data.message === "Login successful") {
         console.log("Login Success");
-        const token = res.data.data.token;
+        const token = res.data.token;
 
         // Store the token in cookies
         Cookies.set("token", token, {

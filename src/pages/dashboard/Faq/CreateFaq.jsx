@@ -49,7 +49,7 @@ function Faqs() {
         const { data } = await axios.get(
           `${
             import.meta.env.VITE_BASE_URL
-          }/admin/faqs?page=${page}&limit=10`,
+          }admin/faqs?page=${page}&limit=10`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ function Faqs() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/admin/faqs/delete/${id}`,
+        `${import.meta.env.VITE_BASE_URL}admin/faqs/delete/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -98,7 +98,7 @@ function Faqs() {
     try {
       setCreating(true);
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/faqs/create`,
+        `${import.meta.env.VITE_BASE_URL}admin/faqs/create`,
         { question, answer },
         {
           headers: {

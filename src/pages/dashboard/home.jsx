@@ -16,7 +16,7 @@ export function Home() {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/admin/dashboard`,
+          `${import.meta.env.VITE_BASE_URL}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

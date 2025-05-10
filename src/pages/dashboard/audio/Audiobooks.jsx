@@ -1,112 +1,82 @@
+import { useState, useEffect, useCallback } from "react";
 import {
-  Button,
+  // Button,
   Card,
   CardBody,
-  CardFooter,
+  // CardFooter,
   CardHeader,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-  DialogHeader,
-  IconButton,
-  Input,
+  // IconButton,
   Spinner,
-  Textarea,
   Tooltip,
   Typography,
 } from "@material-tailwind/react";
-import { PhotoIcon, SpeakerWaveIcon } from "@heroicons/react/24/solid";
-import { TrashIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useCallback, useEffect, useState } from "react";
-import Toaster, {
-  showSuccessToast,
-  showErrorToast,
-} from "../../../components/Toaster";
 import CustomTable from "../../../components/CustomTable";
-import { Eye} from "lucide-react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 
-const Audiobooks = () => {
-  const token = Cookies.get("token");
-  const [audiobooks, setAudiobooks] = useState([]);
-  const [imageFile, setImageFile] = useState(null);
-  const [audioFile, setAudioFile] = useState(null);
+// import AddCustomBid from "./addCustomBid";
+
+function Audiobooks() {
+  const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [totalPages, setTotalPages] = useState(1);x
+  const token = Cookies.get("token");
+  // const [open, setOpen] = useState(false);
+  // const [bidId, setBidId] = useState(null);
+  
+
+
+  // const handleOpen = (id,projectTitle,min,max) =>{
+
+  //   const bids ={
+  //     id:id,
+  //     projectTitle:projectTitle,
+  //     min:min,
+  //     max:max
+  //   }
+
+  //   setOpen(!open);
+  //   setBidId(bids);
+   
+
+  // } 
+  
+  // const permissions = Cookies.get("permissions");
+  // const currentRoute = useLocation().pathname;
+
+  // console.log("currentRoute", currentRoute);
+
+  // const accessArray = JSON.parse(permissions);
+  // const accessRoutes = accessArray.map((route) => `/${route}`);
+  // console.log("accessRoutes", accessRoutes);
+
+  
+
   const navigate = useNavigate(); // Initialize navigate
 
-  // Form state
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-
-  const [creating, setCreating] = useState(false);
-
-const uploadFile = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file); // fixed key here
-
-  try {
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/audio-upload`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    return data?.url;
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    throw new Error("Failed to upload");
-  }
-};
-
-const uploadImgFile = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file); // fixed key here
-
-  try {
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/upload`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    return data?.url;
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    throw new Error("Failed to upload");
-  }
-};
-
-  const fetchAudiobooks = useCallback(
-    async (page) => {
+  const fetchLeads = useCallback(
+    async () => {
+      if (!token) return;
+  
+      setLoading(true);
       try {
-        setLoading(true);
-        const { data } = await axios.get(
-          `${
-            import.meta.env.VITE_BASE_URL
-          }/admin/audiobook?page=${page}&limit=10`,
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}admin/kyc/details`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
         );
-        setAudiobooks(data.audiobooks || []);
-        setTotalPages(data.meta?.totalPages || 1);
+        console.log("leads", res.data.data);
+        setLeads(res.data.data); // ← updated here
+        // setTotalPages(data.meta.totalPages); // ← updated here
       } catch (error) {
-        console.error("Error fetching audiobooks:", error);
-        showErrorToast("Failed to fetch audiobooks");
+        console.error("Error fetching leads:", error);
       } finally {
         setLoading(false);
       }
@@ -114,201 +84,116 @@ const uploadImgFile = async (file) => {
     [token]
   );
 
+  
   useEffect(() => {
-    fetchAudiobooks(currentPage);
-  }, [fetchAudiobooks, currentPage]);
+    if (token) fetchLeads(1);
+  }, [token, fetchLeads]);
 
-  const handleCreate = async () => {
-    if (!title || !description || !imageFile || !audioFile || !price) {
-      showErrorToast("All fields are required.");
-      return;
-    }
+  
 
+  const deleteLead = async (id) => {
     try {
-      setCreating(true);
-
-      // Upload image
-      // const imageUrl = await uploadFile(imageFile);
-
-      // // Upload audio
-      // const audioUrl = await uploadFile(audioFile);
-
-      // Send the URLs in the create audiobook request
-      await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/audiobook/create`,
-        {
-          title,
-          description,
-          price: parseFloat(price),
-          image: imageFile,
-          audio: audioFile,
-        },
-        {
-          headers: {
-        Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      showSuccessToast("Audiobook created successfully");
-      setOpenModal(false);
-      setTitle("");
-      setDescription("");
-      setImageFile(null);
-      setAudioFile(null);
-      setPrice("");
-      fetchAudiobooks(currentPage);
-    } catch (err) {
-      console.error("Error creating audiobook:", err);
-      showErrorToast("Failed to create audiobook");
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/admin/audiobook/delete/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      showSuccessToast("Audiobook deleted");
-      fetchAudiobooks(currentPage);
-    } catch (err) {
-      console.error("Error deleting audiobook:", err);
-      showErrorToast("Failed to delete audiobook");
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}admin/users/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLeads(leads.filter((lead) => lead.id !== id));
+    } catch (error) {
+      console.error("Error deleting lead:", error);
     }
   };
 
   const handleEdit = (id) => {
-    // Navigate to the edit page with the audiobook ID
-  navigate(`/audio-detail/${id}`);
+    navigate(`/kyc-detail/${id}`); // Redirect to detail page with ID
   };
 
   const columns = [
-    { key: "image", label: "Image", render: (row) => <img src={`${import.meta.env.VITE_BASE_URL_IMAGE}${row.image}`} alt={row.title} className="w-16 h-16 rounded" /> },
-    { key: "title", label: "Title", render: (row) => `${row.title}` },
-    { key: "price", label: "Price", render: (row) => `${row.price}` },
-    { key: "audio", label: "Audio", render: (row) => <audio controls src={`${import.meta.env.VITE_BASE_URL_IMAGE}${row.audio}`} /> },
-  
-
+    // {
+    //   key: "profilePic",
+    //   label: "Profile",
+    //   render: (row) => (
+    //     <div className="w-10 h-10 rounded-full overflow-hidden">
+    //       {row.profilePic ? (
+    //         <img
+    //           src={`${import.meta.env.VITE_BASE_URL_IMAGE}${row.profilePic}`}
+    //           alt="Profile"
+    //           className="object-cover w-full h-full"
+    //         />
+    //       ) : (
+    //         <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+    //           N/A
+    //         </div>
+    //       )}
+    //     </div>
+    //   ),
+    //   width: "w-20",
+    // },
+    {
+      key: "fullName",
+      label: "Name",
+      render: (row) => <div>{`${row.firstName || "N/A"} ${row.lastName || ""}`}</div>,
+      width: "w-48",
+    },
+    {
+      key: "phone",
+      label: "Mobile",
+      render: (row) => <div>{row.phone || "N/A"}</div>,
+      width: "w-40",
+    },
+    {
+      key: "email",
+      label: "Email",
+      render: (row) => <div>{row.userId?.email || "N/A"}</div>,
+      width: "w-60",
+    },
+    {
+      key: "address",
+      label: "Address",
+      render: (row) => <div>{row.address || "N/A"}</div>,
+      width: "w-60",
+    },
+    {
+      key: "pincode",
+      label: "Pincode",
+      render: (row) => <div>{row.pincode || "N/A"}</div>,
+      width: "w-40",
+    },
     {
       key: "actions",
       label: "Actions",
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <Tooltip content="Details">
-            <button onClick={() => handleEdit(row.id)}>
-              <Eye className="h-5 w-5 text-blue-500" />
+        <div className="flex gap-2">
+          <Tooltip content="Edit">
+            <button onClick={() => handleEdit(row._id)}>
+              <PencilIcon className="h-5 w-5 text-blue-500" />
             </button>
           </Tooltip>
-        <Tooltip content="Delete">
-          <button onClick={() => handleDelete(row.id)}>
-            <TrashIcon className="h-5 w-5 text-red-500" />
-          </button>
-        </Tooltip>
+          <Tooltip content="Delete">
+            <button onClick={() => deleteLead(row._id)}>
+              <TrashIcon className="h-5 w-5 text-red-500" />
+            </button>
+          </Tooltip>
         </div>
       ),
+      width: "w-28",
     },
   ];
+  
 
   return (
     <Card>
-      <Toaster />
       <CardHeader floated={false} shadow={false} className="rounded-none">
         <div className="flex items-center justify-between">
           <div>
             <Typography variant="h5" color="blue-gray">
-              Audiobooks
+              User List
             </Typography>
             <Typography color="gray" className="mt-1 font-normal">
-              Manage all audiobooks
+              View the current active Users
             </Typography>
           </div>
-          <Button className="bg-blue-500" onClick={() => setOpenModal(true)}>
-            Add Audiobook
-          </Button>
+          {/* <Button variant="gradient">Add New Lead</Button> */}
         </div>
       </CardHeader>
-
-      <Dialog open={openModal} handler={() => setOpenModal(false)}>
-        <DialogHeader>Add a New Audiobook</DialogHeader>
-        <DialogBody divider>
-          <div className="flex flex-col gap-4">
-            <Input
-              label="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <Textarea
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <label className="text-sm text-gray-700 font-medium">
-              Upload Image
-            </label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  try {
-                    const imageUrl = await uploadImgFile(file);
-                    setImageFile(imageUrl);
-                  } catch (error) {
-                    showErrorToast("Failed to upload image",error);
-                  }
-                }
-              }}
-              icon={<PhotoIcon className="h-5 w-5 text-gray-400" />}
-            />
-
-            <Input
-              label="Audio"
-              type="file"
-              accept="audio/*"
-              onChange={async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  try {
-                    const audioUrl = await uploadFile(file);
-                    setAudioFile(audioUrl);
-                  } catch (error) {
-                    showErrorToast("Failed to upload audio",error);
-                  }
-                }
-              }}
-              icon={<SpeakerWaveIcon className="h-5 w-5 text-gray-400" />}
-            />
-            <Input
-              label="Price"
-              value={price}
-              type="number"
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </div>
-        </DialogBody>
-        <DialogFooter>
-          <Button
-            variant="text"
-            color="red"
-            onClick={() => setOpenModal(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            className="bg-blue-500"
-            onClick={handleCreate}
-            disabled={creating}
-          >
-            {creating ? "Creating..." : "Create"}
-          </Button>
-        </DialogFooter>
-      </Dialog>
 
       <CardBody>
         {loading ? (
@@ -316,11 +201,13 @@ const uploadImgFile = async (file) => {
             <Spinner className="h-8 w-8 text-blue-500" />
           </div>
         ) : (
-          <CustomTable columns={columns} data={audiobooks} />
+            
+          <CustomTable columns={columns} data={leads} />
+          
         )}
       </CardBody>
 
-      <CardFooter className="flex justify-between">
+      {/* <CardFooter className="flex justify-between">
         <Button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
@@ -329,17 +216,47 @@ const uploadImgFile = async (file) => {
         </Button>
 
         <div className="flex items-center gap-2">
-          {[...Array(totalPages)].map((_, i) => (
-            <IconButton
-              key={i + 1}
-              variant="text"
-              size="sm"
-              onClick={() => setCurrentPage(i + 1)}
-              disabled={currentPage === i + 1}
-            >
-              {i + 1}
-            </IconButton>
-          ))}
+          {currentPage > 3 && (
+            <>
+              <IconButton
+                variant="text"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+              >
+                1
+              </IconButton>
+              {currentPage > 4 && <p>...</p>}
+            </>
+          )}
+
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const page = Math.max(1, currentPage - 2) + i;
+            if (page > totalPages) return null;
+            return (
+              <IconButton
+                key={page}
+                variant="text"
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                disabled={currentPage === page}
+              >
+                {page}
+              </IconButton>
+            );
+          })}
+
+          {currentPage < totalPages - 2 && (
+            <>
+              {currentPage < totalPages - 3 && <p>...</p>}
+              <IconButton
+                variant="text"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+              >
+                {totalPages}
+              </IconButton>
+            </>
+          )}
         </div>
 
         <Button
@@ -351,8 +268,10 @@ const uploadImgFile = async (file) => {
           Next
         </Button>
       </CardFooter>
+     */}
+      {/* <AddCustomBid open={open} handleOpen={handleOpen} bidId={bidId} /> */}
     </Card>
   );
-};
+}
 
 export default Audiobooks;

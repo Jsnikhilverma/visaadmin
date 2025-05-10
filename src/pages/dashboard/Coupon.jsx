@@ -41,7 +41,7 @@ function Coupon() {
     if (!token) return;
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/get-coupon-code`,
+        `${import.meta.env.VITE_BASE_URL}get-coupon-code`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setLeads(data.data);
@@ -60,7 +60,7 @@ function Coupon() {
   const onDelete = async (id) => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/delete-coupon-code/${id}`,
+        `${import.meta.env.VITE_BASE_URL}delete-coupon-code/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -83,7 +83,7 @@ function Coupon() {
       data.append("status", "1"); // Default status to active
 
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/create-coupon-code`,
+        `${import.meta.env.VITE_BASE_URL}create-coupon-code`,
         data,
         {
           headers: {
@@ -115,7 +115,7 @@ function Coupon() {
       data.append("status", newStatus);
 
       await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/update-coupon-code/${id}`,
+        `${import.meta.env.VITE_BASE_URL}update-coupon-code/${id}`,
         data,
         {
           headers: {

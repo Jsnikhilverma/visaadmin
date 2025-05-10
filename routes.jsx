@@ -40,8 +40,8 @@ export const routes = [
       },
       {
         icon: <AudioLinesIcon className={iconClass} />,
-        name: "Audio Book",
-        path: "/audio-book", // Fixed path
+        name: "All Kycs",
+        path: "/all-Kycs", // Fixed path
         element: (
           <PrivateRoute>
             <Audiobooks />
@@ -51,8 +51,8 @@ export const routes = [
       
       {
         icon: <AudioLinesIcon className={iconClass} />,
-        name: "Audio Package",
-        path: "/audio-package", // Fixed path
+        name: "Apply Passports",
+        path: "/apply-passports", // Fixed path
         element: (
           <PrivateRoute>
             <AudioPackage/>
@@ -61,8 +61,8 @@ export const routes = [
       },
       {
         icon: <AudioLinesIcon className={iconClass} />,
-        name: "Free Audio Book",
-        path: "/free-audio-book", // Fixed path
+        name: "Passport",
+        path: "/passport", // Fixed path
         element: (
           <PrivateRoute>
             <FreeAudiobooks/>
@@ -71,8 +71,8 @@ export const routes = [
       },
       {
         icon: <VideoIcon className={iconClass} />,
-        name: "Video Book",
-        path: "/Video-book", // Fixed path
+        name: "Apply Visa",
+        path: "/apply-visa", // Fixed path
         element: (
           <PrivateRoute>
             <VideoBooks />

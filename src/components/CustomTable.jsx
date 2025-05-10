@@ -19,9 +19,9 @@ const CustomTable = ({ columns, data, }) => {
           
         </thead>
         <tbody>
-          {data.map((row, rowIndex) => (
+          {data?.map((row, rowIndex) => (
             <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-200 text-sm">
-              {columns.map((col) => (
+              {columns?.map((col) => (
                 <td key={col.key} className={`px-4 py-2 ${col.width || ""}`}>
                   {col.render ? col.render(row) : row[col.key]}
                 </td>

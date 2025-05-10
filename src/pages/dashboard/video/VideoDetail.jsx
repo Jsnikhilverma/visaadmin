@@ -12,30 +12,53 @@ import {
 const VideoDetail = () => {
   const { id } = useParams();
   const token = Cookies.get("token");
-  const [video, setVideo] = useState(null);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [visaDetails, setVisaDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
+  const handleUpdateStatus = async (newStatus) => {
+  try {
+    await axios.put(
+      `${import.meta.env.VITE_BASE_URL}visa/visaApplicationId/${id}?status=${newStatus}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    alert(`Visa status updated to ${newStatus}`);
+    // Optionally, refetch or update UI
+    setVisaDetails({ ...visaDetails, status: newStatus });
+  } catch (error) {
+    console.error("Failed to update status:", error);
+    alert("Status update failed.");
+  }
+};
+
   useEffect(() => {
-    const fetchVideoById = async () => {
+    const fetchVisaDetailsById = async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/admin/video/details/${id}`,
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}admin/visa/visaapplications/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setVideo(data.video);
+        setVisaDetails(res.data);
+        // console.log(res.data);
+        
+        
       } catch (error) {
-        console.error("Failed to fetch video details", error);
+        console.error("Failed to fetch KYC details", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchVideoById();
+    fetchVisaDetailsById();
   }, [id, token]);
 
   if (loading) {
@@ -46,74 +69,102 @@ const VideoDetail = () => {
     );
   }
 
-  if (!video) {
+  if (!visaDetails) {
     return (
       <div className="text-center mt-10 text-red-500">
-        Video not found.
+        KYC details not found.
       </div>
     );
   }
 
-  const toggleDescription = () => {
-    setShowFullDescription(!showFullDescription);
-  };
-
-  // Convert YouTube link to embeddable format
-  const getYouTubeEmbedUrl = (url) => {
-    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n]+)/;
-    const match = url.match(regex);
-    return match ? `https://www.youtube.com/embed/${match[1]}` : null;
-  };
-
-  const embedUrl = getYouTubeEmbedUrl(video.video);
+  // const data = visaDetails.data;
 
   return (
     <div className="max-w-4xl mx-auto mt-8 px-4">
       <Card className="shadow-lg">
-        <div className="flex flex-col md:flex-row">
-          {/* Image Section */}
-          <div className="md:w-1/2">
-            <img
-              src={video.image}
-              alt={video.title}
-              className="h-full w-full object-cover rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
-            />
+        <CardBody className="p-6 space-y-4">
+          <Typography variant="h4" color="blue-gray">
+            Visa Application Details
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Country:</strong> {visaDetails.country}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Visa Type:</strong> {visaDetails.visaType}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Travel Date:</strong> {new Date(visaDetails.travelDate).toLocaleDateString()}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Return Date:</strong> {new Date(visaDetails.returnDate).toLocaleDateString()}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Travel Purpose:</strong> {visaDetails.travelPurpose}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Accommodation:</strong> {visaDetails.accommodation}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Status:</strong> {visaDetails.status}
+          </Typography>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>Photo:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${visaDetails.documents.photo}`}
+                alt="Photo"
+                className="rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>Bank Statement:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${visaDetails.documents.bankStatement}`}
+                alt="Bank Statement"
+                className="rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>Invitation:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${visaDetails.documents.invitation}`}
+                alt="Invitation"
+                className="rounded-md shadow-sm"
+              />
+            </div>
+          </div>
+           <div className="flex justify-end space-x-4 mt-6">
+            <button
+              onClick={() => handleUpdateStatus("approved")}
+              disabled={visaDetails.status !== "pending"}
+              className={`px-4 py-2 rounded-md shadow text-white ${
+                visaDetails.status !== "pending"
+                  ? "bg-green-300 cursor-not-allowed"
+                  : "bg-green-500 hover:bg-green-600"
+              }`}
+            >
+              Accept
+            </button>
+            <button
+              onClick={() => handleUpdateStatus("rejected")}
+              disabled={visaDetails.status !== "pending"}
+              className={`px-4 py-2 rounded-md shadow text-white ${
+                visaDetails.status !== "pending"
+                  ? "bg-red-300 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
+            >
+              Reject
+            </button>
           </div>
 
-          {/* Content Section */}
-          <CardBody className="md:w-1/2 p-6 space-y-4">
-            <Typography variant="h4" color="blue-gray">
-              {video.title}
-            </Typography>
-
-            {embedUrl ? (
-              <div className="aspect-w-16 aspect-h-9">
-                <iframe
-                  src={embedUrl}
-                  title={video.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-64 rounded-md"
-                ></iframe>
-              </div>
-            ) : (
-              <Typography color="red">Invalid YouTube link</Typography>
-            )}
-
-            <Typography color="gray" className="text-lg">
-              {showFullDescription
-                ? video.description
-                : `${video.description.slice(0, 100)}...`}
-            </Typography>
-            <button
-              onClick={toggleDescription}
-              className="text-blue-500 underline mt-2"
-            >
-              {showFullDescription ? "Show Less" : "Show More"}
-            </button>
-          </CardBody>
-        </div>
+        </CardBody>
       </Card>
     </div>
   );

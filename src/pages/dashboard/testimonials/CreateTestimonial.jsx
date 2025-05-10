@@ -24,7 +24,7 @@ import Toaster, {
   showErrorToast,
   showSuccessToast,
 } from "../../../components/Toaster";
-import { ViewColumnsIcon } from "@heroicons/react/24/outline";
+// import { ViewColumnsIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { Eye } from "lucide-react";
 
@@ -52,7 +52,7 @@ function CreateTestimonial() {
   
     try {
       const { data } = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/upload`,
+        `${import.meta.env.VITE_BASE_URL}upload`,
         formData,
         {
           headers: {
@@ -78,7 +78,7 @@ function CreateTestimonial() {
         const { data } = await axios.get(
           `${
             import.meta.env.VITE_BASE_URL
-          }/admin/testimonial?page=${page}&limit=10`,
+          }admin/testimonial?page=${page}&limit=10`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ function CreateTestimonial() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/admin/testimonial/${id}`,
+        `${import.meta.env.VITE_BASE_URL}admin/testimonial/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -127,7 +127,7 @@ function CreateTestimonial() {
     try {
       setCreating(true);
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/admin/testimonial`,
+        `${import.meta.env.VITE_BASE_URL}admin/testimonial`,
         { name:title, image:imageFile, description:description },
         {
           headers: {

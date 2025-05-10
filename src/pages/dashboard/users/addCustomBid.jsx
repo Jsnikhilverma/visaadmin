@@ -37,7 +37,7 @@ const AddCustomBid = ({ open, handleOpen, bidId  }) => {
         const fetchServices = async () => {
             try {
                 const response = await axios.get(
-                    `${import.meta.env.VITE_BASE_URL}/get-all-professionals`,
+                    `${import.meta.env.VITE_BASE_URL}get-all-professionals`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 setServices(response.data.data.map((service) => ({

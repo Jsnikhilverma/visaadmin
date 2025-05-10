@@ -7,41 +7,62 @@ import {
   CardBody,
   Typography,
   Spinner,
-  Button,
 } from "@material-tailwind/react";
 
 const AudioPackageDetail = () => {
   const { id } = useParams();
   const token = Cookies.get("token");
-  const [pack, setPack] = useState(null);
-  const [audioBooks, setAudioBooks] = useState([]);
+  const [passDetails, setPassDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentAudio, setCurrentAudio] = useState(null);
+
+  const handleUpdateStatus = async (newStatus) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_BASE_URL}passport/passport-status-update/${id}?status=${newStatus}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert(`Visa status updated to ${newStatus}`);
+      setPassDetails({ ...passDetails, status: newStatus });
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Status update failed.");
+    }
+  };
 
   useEffect(() => {
-    const fetchPackDetails = async () => {
+    const fetchVisaDetailsById = async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/admin/pack/${id}`,
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}admin/passport/getpassport/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setPack(data.pack);
-        setAudioBooks(data.audioBooks);
-        if (data.audioBooks.length > 0) {
-          setCurrentAudio(data.audioBooks[0]);
-        }
+
+        setPassDetails({
+          ...res.data.data,
+          status:
+            res.data.data.status === null || res.data.data.status === undefined
+              ? "pending"
+              : res.data.data.status,
+        });
+
+        console.log(res.data);
       } catch (error) {
-        console.error("Failed to fetch package details", error);
+        console.error("Failed to fetch KYC details", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPackDetails();
+    fetchVisaDetailsById();
   }, [id, token]);
 
   if (loading) {
@@ -52,150 +73,110 @@ const AudioPackageDetail = () => {
     );
   }
 
-  if (!pack) {
+  if (!passDetails) {
     return (
       <div className="text-center mt-10 text-red-500">
-        Audio package not found.
+        KYC details not found.
       </div>
     );
   }
 
-  const calculateSavings = () => {
-    if (pack.price && pack.discountedPrice) {
-      const savings = pack.price - pack.discountedPrice;
-      const savingsPercentage = (savings / pack.price) * 100;
-      return savingsPercentage.toFixed(0);
-    }
-    return 0;
-  };
-
   return (
-    <div className="max-w-6xl mx-auto mt-8 px-4">
-      {/* Package Header Card */}
-      <Card className="shadow-lg mb-8">
-        <div className="flex flex-col md:flex-row">
-          {/* Package Image */}
-          <div className="md:w-1/3">
-            <img
-              src={`${import.meta.env.VITE_BASE_URL_IMAGE}${pack.image}`}
-              alt={pack.title}
-              className="h-full w-full object-cover rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
-            />
+    <div className="max-w-4xl mx-auto mt-8 px-4">
+      <Card className="shadow-lg">
+        <CardBody className="p-6 space-y-4">
+          <Typography variant="h4" color="blue-gray">
+            Passport Application Details
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Country:</strong> {passDetails.firstName}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Visa Type:</strong> {passDetails.firstName}
+          </Typography>
+          <Typography color="gray" className="text-lg">
+            <strong>Date Of Birth:</strong>{" "}
+            {new Date(passDetails.dateOfBirth).toLocaleDateString()}
+          </Typography>
+
+          {/* Status badge */}
+          <Typography color="gray" className="text-lg flex items-center gap-2">
+            <strong>Status:</strong>
+            <span>
+              {passDetails.status}
+            </span>
+          </Typography>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>Photo:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${passDetails.userImg}`}
+                alt="Photo"
+                className="rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>Adhar Front:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${passDetails.adharFrontImg}`}
+                alt="Adhar Front"
+                className="rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>Adhar Back:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${passDetails.adharBackImg}`}
+                alt="Adhar Back"
+                className="rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <Typography color="gray" className="text-lg">
+                <strong>PAN Card:</strong>
+              </Typography>
+              <img
+                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${passDetails.panCardImg}`}
+                alt="PAN Card"
+                className="rounded-md shadow-sm"
+              />
+            </div>
           </div>
 
-          {/* Package Details */}
-          <CardBody className="md:w-2/3 p-6 space-y-4">
-            <div className="flex justify-between items-start">
-              <Typography variant="h3" color="blue-gray" className="font-bold">
-                {pack.title}
-              </Typography>
-              {pack.free ? (
-                <div className="bg-green-500 text-white px-4 py-1 rounded-full">
-                  Free
-                </div>
-              ) : null}
-            </div>
-
-            <Typography color="gray" className="text-lg">
-              {pack.description}
-            </Typography>
-
-            <div className="flex items-center space-x-4">
-              {!pack.free && (
-                <>
-                  <Typography color="green" className="text-2xl font-bold">
-                    ${pack.discountedPrice}
-                  </Typography>
-                  <Typography color="gray" className="text-lg line-through">
-                    ${pack.price}
-                  </Typography>
-                  <div className="bg-red-100 text-red-800 px-2 py-1 rounded">
-                    Save {calculateSavings()}%
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="pt-4">
-              <Typography variant="h6" color="blue-gray">
-                Package Includes:
-              </Typography>
-              <Typography color="gray">
-                {audioBooks.length} audiobooks
-              </Typography>
-            </div>
-
-            {/* <Button 
-              color="blue" 
-              className="mt-4"
-              fullWidth
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-4 mt-6">
+            <button
+              onClick={() => handleUpdateStatus("approved")}
+              disabled={passDetails.status !== "pending"}
+              className={`px-4 py-2 rounded-md shadow text-white ${
+                passDetails.status !== "pending"
+                  ? "bg-green-300 cursor-not-allowed"
+                  : "bg-green-500 hover:bg-green-600"
+              }`}
             >
-              {pack.free ? "Get Free Package" : "Purchase Package"}
-            </Button> */}
-          </CardBody>
-        </div>
-      </Card>
-
-      {/* Current Playing Audiobook Section */}
-      {currentAudio && (
-        <Card className="shadow-lg mb-8">
-          <div className="flex flex-col md:flex-row">
-            <div className="md:w-1/4">
-              <img
-                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${currentAudio.image}`}
-                alt={currentAudio.title}
-                className="h-full w-full object-cover rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
-              />
-            </div>
-            <CardBody className="md:w-3/4 p-6 space-y-4">
-              <Typography variant="h5" color="blue-gray" className="font-bold">
-                Now Playing: {currentAudio.title}
-              </Typography>
-              <audio controls className="w-full rounded-md shadow-sm">
-                <source src={`${import.meta.env.VITE_BASE_URL_IMAGE}${currentAudio.audio}`} type="audio/mpeg" />
-                Your browser does not support the audio element.
-              </audio>
-              <Typography color="gray" className="text-base">
-                {currentAudio.description}
-              </Typography>
-            </CardBody>
+              Accept
+            </button>
+            <button
+              onClick={() => handleUpdateStatus("rejected")}
+              disabled={passDetails.status !== "pending"}
+              className={`px-4 py-2 rounded-md shadow text-white ${
+                passDetails.status !== "pending"
+                  ? "bg-red-300 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
+            >
+              Reject
+            </button>
           </div>
-        </Card>
-      )}
-
-      {/* List of All Audiobooks in Package */}
-      <Typography variant="h4" color="blue-gray" className="font-bold mb-4">
-        Included Audiobooks
-      </Typography>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {audioBooks?.map((book) => (
-          <Card key={book.id} className="shadow-md hover:shadow-xl transition-shadow">
-            <div className="relative pb-2/3">
-              <img
-                src={`${import.meta.env.VITE_BASE_URL_IMAGE}${book?.image}`}
-                alt={book.title}
-                className="h-48 w-full object-cover rounded-t-xl"
-              />
-            </div>
-            <CardBody className="p-4">
-              <Typography variant="h6" color="blue-gray" className="font-semibold mb-2">
-                {book?.title}
-              </Typography>
-              <Typography color="gray" className="text-sm mb-3 line-clamp-2">
-                {book.description}
-              </Typography>
-              <Button 
-                color="blue" 
-                size="sm" 
-                fullWidth
-                onClick={() => setCurrentAudio(book)}
-              >
-                Play Now
-              </Button>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

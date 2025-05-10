@@ -60,7 +60,7 @@ function Profile() {
 
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_BASE_URL}/get-all-users`,
+          `${import.meta.env.VITE_BASE_URL}admin/allusers/users`,
           form.toString(),
           {
             headers: {
@@ -100,7 +100,7 @@ function Profile() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_BASE_URL}/users/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(users.filter((user) => user.id !== id));

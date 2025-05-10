@@ -21,7 +21,7 @@ const  TestimonailDetail = () => {
     const fetchAudiobookById = async () => {
       try {
         const { data } = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/admin/testimonial/${id}`,
+          `${import.meta.env.VITE_BASE_URL}admin/testimonial/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
