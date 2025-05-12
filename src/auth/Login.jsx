@@ -72,7 +72,7 @@ const Login = () => {
               <img src="https://sooprs.com/images/sooprs_logo.png" alt="Logo" />
             </div> */}
             <div className=" text-3xl text-indigo-800 tracking-wide ml-2 font-semibold">
-            Stanley Admin
+            Axe visa Admin
               </div>
           </div>
         </div>
