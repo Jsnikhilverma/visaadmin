@@ -14,7 +14,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import CustomTable from "../../../components/CustomTable";
 import { useNavigate } from "react-router-dom"; // Import useNavigat
-import {  ToggleRight } from "lucide-react";
+import { PencilIcon,TrashIcon } from "lucide-react";
 
 // import AddCustomBid from "./addCustomBid";
 
@@ -24,6 +24,7 @@ function FreeAudiobooks() {
   // const [currentPage, setCurrentPage] = useState(1);
   // const [totalPages, setTotalPages] = useState(1);x
   const token = Cookies.get("token");
+  
   // const [open, setOpen] = useState(false);
   // const [bidId, setBidId] = useState(null);
   
@@ -130,7 +131,7 @@ function FreeAudiobooks() {
     {
       key: "fullName",
       label: "Name",
-      render: (row) => <div>{`${row.firstName || "N/A"} ${row.lastName || ""}`}</div>,
+      render: (row) => <div>{`${row.Fullname || "N/A"} ${row.lastName || ""}`}</div>,
       width: "w-48",
     },
     {
@@ -140,32 +141,44 @@ function FreeAudiobooks() {
       width: "w-40",
     },
     {
-      key: "passportFrontImg",
-      label: "Passport Images",
-      render: (row) => <div>{row.passportFrontImg || "N/A"}</div>,
+      key: "passport type",
+      label: "Passport Type",
+      render: (row) => <div>{row.PassportType || "N/A"}</div>,
       width: "w-60",
     },
     {
       key: "passportBackImg",
       label: "Passport Imgages",
-      render: (row) => <div>{row.passportBackImg || "N/A"}</div>,
+      render: (row) => <div>{row.Nationality || "N/A"}</div>,
       width: "w-60",
     },
-    {
-      key: "actions",
-      label: "Actions",
-      render: (row) => (
-        <div className="flex gap-2">
-          <Tooltip content="Edit">
-            <button onClick={() => handleEdit(row._id)}>
-              <ToggleRight className="h-5 w-5 text-blue-500" />
-            </button>
-          </Tooltip>
-
-        </div>
-      ),
-      width: "w-28",
+     {
+      key: "passportFrontImg",
+      label: "Passport Images",
+      render: (row) => <div>{row.passportFrontImg || "N/A"}</div>,
+      width: "w-60",
     },
+   {
+      key: "actions",
+     label: "Actions",
+      width: "w-48",
+      render: (row) =>
+    <div className="relative flex gap-2">
+      {/* Edit button for admin & expert */}
+      <Tooltip content="Edit">
+        <button onClick={() => handleEdit(row._id)}>
+          <PencilIcon className="h-5 w-5 text-blue-500" />
+        </button>
+      </Tooltip>
+
+      {/* Delete button for admin & expert */}
+      <Tooltip content="Delete">
+        <button onClick={() => deleteLead(row._id)}>
+          <TrashIcon className="h-5 w-5 text-red-500" />
+        </button>
+      </Tooltip>     
+         </div>
+    }
   ];
   
 

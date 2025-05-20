@@ -43075,8 +43075,8 @@ const Ux = () => {
         },
         {
           icon: w.jsx(ro, { className: pt }),
-          name: "Create FAQ",
-          path: "/create-faq",
+          name: "Create Expert",
+          path: "/create-expert",
           element: w.jsx(ot, { children: w.jsx(Xx, {}) }),
         },
         {

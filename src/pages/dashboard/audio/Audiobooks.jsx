@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  // Button,
   Card,
   CardBody,
-  // CardFooter,
   CardHeader,
-  // IconButton,
   Spinner,
   Tooltip,
   Typography,
@@ -13,124 +10,160 @@ import {
 import axios from "axios";
 import Cookies from "js-cookie";
 import CustomTable from "../../../components/CustomTable";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
-
-// import AddCustomBid from "./addCustomBid";
 
 function Audiobooks() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [totalPages, setTotalPages] = useState(1);x
+  const [experts, setExperts] = useState([]);
+  const [assigningToId, setAssigningToId] = useState(null);
+
   const token = Cookies.get("token");
-  // const [open, setOpen] = useState(false);
-  // const [bidId, setBidId] = useState(null);
-  
+  const expertToken = Cookies.get("expertToken");
+  const userType = Cookies.get("userType"); // admin or expert
+  const userId = Cookies.get("userId"); // used for expert fetch
+  const navigate = useNavigate();
 
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // Fetch leads based on user role
+  const fetchLeads = useCallback(async () => {
+    if (!token && !expertToken) {
 
-  // const handleOpen = (id,projectTitle,min,max) =>{
+      
+      setLeads([]);
+      setLoading(false);
+      return;
+    }
 
-  //   const bids ={
-  //     id:id,
-  //     projectTitle:projectTitle,
-  //     min:min,
-  //     max:max
-  //   }
+    setLoading(true);
 
-  //   setOpen(!open);
-  //   setBidId(bids);
-   
+    try {
+      let res;
 
-  // } 
-  
-  // const permissions = Cookies.get("permissions");
-  // const currentRoute = useLocation().pathname;
+      if (userType === "admin") {
+ 
+        
+        res = await axios.get(`${baseUrl}admin/kyc/details`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } else if (userType === "expert" && userId) {
 
-  // console.log("currentRoute", currentRoute);
+        
+        // Use expertToken if available, else fallback to token
+        const authToken = expertToken;
 
-  // const accessArray = JSON.parse(permissions);
-  // const accessRoutes = accessArray.map((route) => `/${route}`);
-  // console.log("accessRoutes", accessRoutes);
+        const url = `${baseUrl}expert/by-expert/${userId}`;
 
-  
-
-  const navigate = useNavigate(); // Initialize navigate
-
-  const fetchLeads = useCallback(
-    async () => {
-      if (!token) return;
-  
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}admin/kyc/details`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        console.log("leads", res.data.data);
-        setLeads(res.data.data); // ← updated here
-        // setTotalPages(data.meta.totalPages); // ← updated here
-      } catch (error) {
-        console.error("Error fetching leads:", error);
-      } finally {
+        res = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+      } else {
+        setLeads([]);
         setLoading(false);
+        return;
       }
-    },
-    [token]
-  );
 
   
+
+      if (res?.data?.data) {
+        setLeads(res.data.data);
+      } else if (res?.data?.kycData) {
+        setLeads(res.data.kycData);
+      } else {
+        setLeads([]);
+      }
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      setLeads([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [token, userType, expertToken, userId, baseUrl]);
+
+  // Fetch experts once on mount (only for admin)
   useEffect(() => {
-    if (token) fetchLeads(1);
-  }, [token, fetchLeads]);
+    const fetchExperts = async () => {
+      try {
+        const res = await axios.get(`${baseUrl}expert/allexperts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setExperts(res.data.experts || []);
+      } catch (error) {
+        console.error("Error fetching experts:", error);
+      }
+    };
 
-  
+    if (token || expertToken) {
 
+      
+      if (userType === "admin") {
+      
+        
+        fetchExperts();
+        fetchLeads();
+      } else if (userType === "expert" && userId) {
+   
+        
+        fetchLeads();
+      }
+    }
+  }, [token, userType,expertToken, userId, fetchLeads, baseUrl]);
+
+  // Delete lead (admin only)
   const deleteLead = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_BASE_URL}admin/users/delete/${id}`, {
+      await axios.delete(`${baseUrl}admin/users/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setLeads(leads.filter((lead) => lead.id !== id));
+      setLeads((prevLeads) => prevLeads.filter((lead) => lead._id !== id));
     } catch (error) {
       console.error("Error deleting lead:", error);
     }
   };
 
+  // Navigate to edit page
   const handleEdit = (id) => {
-    navigate(`/kyc-detail/${id}`); // Redirect to detail page with ID
+    navigate(`/kyc-detail/${id}`);
+  };
+
+  // Toggle Assign Expert dropdown for a row
+  const handleAssignExpertClick = (id) => {
+    setAssigningToId((prevId) => (prevId === id ? null : id));
+  };
+
+  // Handle expert selection from dropdown
+  const handleExpertSelect = async (expertId) => {
+    try {
+      await axios.put(
+        `${baseUrl}admin/kyc/assign-expert/${assigningToId}/${expertId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Expert assigned successfully!");
+      setAssigningToId(null);
+      fetchLeads(); // refresh leads
+    } catch (error) {
+      console.error("Error assigning expert:", error);
+      alert("Failed to assign expert.");
+    }
   };
 
   const columns = [
-    // {
-    //   key: "profilePic",
-    //   label: "Profile",
-    //   render: (row) => (
-    //     <div className="w-10 h-10 rounded-full overflow-hidden">
-    //       {row.profilePic ? (
-    //         <img
-    //           src={`${import.meta.env.VITE_BASE_URL_IMAGE}${row.profilePic}`}
-    //           alt="Profile"
-    //           className="object-cover w-full h-full"
-    //         />
-    //       ) : (
-    //         <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-    //           N/A
-    //         </div>
-    //       )}
-    //     </div>
-    //   ),
-    //   width: "w-20",
-    // },
     {
       key: "fullName",
       label: "Name",
-      render: (row) => <div>{`${row.firstName || "N/A"} ${row.lastName || ""}`}</div>,
+      render: (row) => (
+        <div>{`${row.firstName || "N/A"} ${row.lastName || ""}`}</div>
+      ),
       width: "w-48",
     },
     {
@@ -142,7 +175,7 @@ function Audiobooks() {
     {
       key: "email",
       label: "Email",
-      render: (row) => <div>{row.userId?.email || "N/A"}</div>,
+      render: (row) => <div>{row.email || row.userId?.email || "N/A"}</div>,
       width: "w-60",
     },
     {
@@ -160,24 +193,63 @@ function Audiobooks() {
     {
       key: "actions",
       label: "Actions",
-      render: (row) => (
-        <div className="flex gap-2">
-          <Tooltip content="Edit">
-            <button onClick={() => handleEdit(row._id)}>
-              <PencilIcon className="h-5 w-5 text-blue-500" />
-            </button>
-          </Tooltip>
-          <Tooltip content="Delete">
-            <button onClick={() => deleteLead(row._id)}>
-              <TrashIcon className="h-5 w-5 text-red-500" />
-            </button>
-          </Tooltip>
+      render: (row) =>
+  (userType === "admin" || userType === "expert") ? (
+    <div className="relative flex gap-2">
+      {/* Edit button for admin & expert */}
+      <Tooltip content="Edit">
+        <button onClick={() => handleEdit(row._id)}>
+          <PencilIcon className="h-5 w-5 text-blue-500" />
+        </button>
+      </Tooltip>
+
+      {/* Delete button for admin & expert */}
+      <Tooltip content="Delete">
+        <button onClick={() => deleteLead(row._id)}>
+          <TrashIcon className="h-5 w-5 text-red-500" />
+        </button>
+      </Tooltip>
+
+      {/* Assign Expert button only for admin */}
+      {userType === "admin" && (
+        <Tooltip content="Assign Expert">
+          <button
+            onClick={() => handleAssignExpertClick(row._id)}
+            className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+          >
+            Assign Expert
+          </button>
+        </Tooltip>
+      )}
+
+      {/* Expert dropdown only shown for admin */}
+      {userType === "admin" && assigningToId === row._id && (
+        <div className="absolute top-full right-5 mt-1 w-48 max-h-56 overflow-y-auto bg-white border rounded shadow-lg z-10">
+          {experts.length > 0 ? (
+            experts.map((expert) => (
+              <div
+                key={expert._id}
+                className="cursor-pointer px-3 py-2 hover:bg-green-100"
+                onClick={() => handleExpertSelect(expert._id)}
+              >
+                {expert.name ||
+                  expert.fullName ||
+                  expert.firstName ||
+                  "Unnamed Expert"}
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-gray-500">No experts found</div>
+          )}
         </div>
-      ),
-      width: "w-28",
-    },
+      )}
+    </div>
+  ) : (
+    <div className="text-gray-500 italic">No Actions</div>
+  ),
+      width: "w-48",
+    }
   ];
-  
 
   return (
     <Card>
@@ -191,7 +263,6 @@ function Audiobooks() {
               View the current active Users
             </Typography>
           </div>
-          {/* <Button variant="gradient">Add New Lead</Button> */}
         </div>
       </CardHeader>
 
@@ -201,75 +272,9 @@ function Audiobooks() {
             <Spinner className="h-8 w-8 text-blue-500" />
           </div>
         ) : (
-            
           <CustomTable columns={columns} data={leads} />
-          
         )}
       </CardBody>
-
-      {/* <CardFooter className="flex justify-between">
-        <Button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-
-        <div className="flex items-center gap-2">
-          {currentPage > 3 && (
-            <>
-              <IconButton
-                variant="text"
-                size="sm"
-                onClick={() => setCurrentPage(1)}
-              >
-                1
-              </IconButton>
-              {currentPage > 4 && <p>...</p>}
-            </>
-          )}
-
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const page = Math.max(1, currentPage - 2) + i;
-            if (page > totalPages) return null;
-            return (
-              <IconButton
-                key={page}
-                variant="text"
-                size="sm"
-                onClick={() => setCurrentPage(page)}
-                disabled={currentPage === page}
-              >
-                {page}
-              </IconButton>
-            );
-          })}
-
-          {currentPage < totalPages - 2 && (
-            <>
-              {currentPage < totalPages - 3 && <p>...</p>}
-              <IconButton
-                variant="text"
-                size="sm"
-                onClick={() => setCurrentPage(totalPages)}
-              >
-                {totalPages}
-              </IconButton>
-            </>
-          )}
-        </div>
-
-        <Button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </CardFooter>
-     */}
-      {/* <AddCustomBid open={open} handleOpen={handleOpen} bidId={bidId} /> */}
     </Card>
   );
 }

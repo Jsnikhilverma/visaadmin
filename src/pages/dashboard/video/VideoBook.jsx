@@ -21,68 +21,135 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 function VedioBook() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [totalPages, setTotalPages] = useState(1);x
+    const [experts, setExperts] = useState([]);
+  const [assigningToId, setAssigningToId] = useState(null);
+
   const token = Cookies.get("token");
-  // const [open, setOpen] = useState(false);
-  // const [bidId, setBidId] = useState(null);
-  
-
-
-  // const handleOpen = (id,projectTitle,min,max) =>{
-
-  //   const bids ={
-  //     id:id,
-  //     projectTitle:projectTitle,
-  //     min:min,
-  //     max:max
-  //   }
-
-  //   setOpen(!open);
-  //   setBidId(bids);
-   
-
-  // } 
-  
-  // const permissions = Cookies.get("permissions");
-  // const currentRoute = useLocation().pathname;
-
-  // console.log("currentRoute", currentRoute);
-
-  // const accessArray = JSON.parse(permissions);
-  // const accessRoutes = accessArray.map((route) => `/${route}`);
-  // console.log("accessRoutes", accessRoutes);
-
-  
+const expertToken = Cookies.get("expertToken");
+    const userType = Cookies.get("userType"); // admin or expert
+    const userId = Cookies.get("userId");
 
   const navigate = useNavigate(); // Initialize navigate
 
-  const fetchLeads = useCallback(
-    async () => {
-      if (!token) return;
+  const baseUrl = import.meta.env.VITE_BASE_URL;
   
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}admin/visa/allvisaapplications`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        console.log("leads", res.data);
-        setLeads(res.data); // ← updated here
-        // setTotalPages(data.meta.totalPages); // ← updated here
-      } catch (error) {
-        console.error("Error fetching leads:", error);
-      } finally {
+
+    const fetchLeads = useCallback(async () => {
+    if (!token && !expertToken) {
+
+      
+      setLeads([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+     try {
+      let res;
+
+      if (userType === "admin") {
+        console.log(1);
+        
+        
+        res = await axios.get(`${baseUrl}admin/visa/allvisaapplications`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        console.log(res.data, 'ad res');
+        
+      } else if (userType === "expert" && userId) {
+        const authToken = expertToken;
+
+        const url = `${baseUrl}expert/visa/${userId}`;
+
+        res = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+      } else {
+        setLeads([]);
         setLoading(false);
+        return;
       }
-    },
-    [token]
-  );
+       if (res?.data && userType === "admin") {
+        setLeads(res.data);
+       } else if (res?.data?.data && userType === "expert") {         
+        setLeads(res.data.data);
+       } else {
+         console.log(4);
+         
+        setLeads([]);
+      }
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      setLeads([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [token, userType, expertToken, userId, baseUrl]);
+
+
+
+   useEffect(() => {
+    const fetchExperts = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BASE_URL}expert/allexperts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setExperts(res.data.experts || []);
+        
+      } catch (error) {
+        console.error("Error fetching experts:", error);
+      }
+    };
+   if (token || expertToken) {
+
+      
+      if (userType === "admin") {
+      
+        
+        fetchExperts();
+        fetchLeads();
+      } else if (userType === "expert" && userId) {
+   
+        
+        fetchLeads();
+      }
+    }
+  }, [token, userType,expertToken, userId, fetchLeads, baseUrl]);
+  
+  
+  const handleAssignExpertClick = (id) => {
+    setAssigningToId((prevId) => (prevId === id ? null : id));
+  };
+
+  // Handle expert selection from dropdown
+  const handleExpertSelect = async (expertId) => {
+    console.log("Assigning expert", expertId, "to lead", assigningToId);
+
+    try {
+      // Example API call to assign expert to lead (adjust URL and payload as needed)
+      await axios.put(
+        `${import.meta.env.VITE_BASE_URL}admin/visa/assign-visa/${assigningToId}/${expertId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Expert assigned successfully!");
+      setAssigningToId(null);
+      // Optionally refresh leads or update UI
+    } catch (error) {
+      console.error("Error assigning expert:", error);
+      alert("Failed to assign expert.");
+    }
+  };
+
 
   
   useEffect(() => {
@@ -158,6 +225,32 @@ function VedioBook() {
               <TrashIcon className="h-5 w-5 text-red-500" />
             </button>
           </Tooltip>
+           <Tooltip content="Assign Expert">
+            <button
+              onClick={() => handleAssignExpertClick(row._id)}
+              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+            >
+              Assign Expert
+            </button>
+          </Tooltip>
+
+          {assigningToId === row._id && (
+            <div className="absolute top-auto right-20 mt-10 w-48 max-h-56 overflow-y-auto bg-white border rounded shadow-lg z-10">
+              {experts.length > 0 ? (
+                experts.map((expert) => (
+                  <div
+                    key={expert._id}
+                    className="cursor-pointer px-3 py-2 hover:bg-green-100"
+                    onClick={() => handleExpertSelect(expert._id)}
+                  >
+                    {expert.name || expert.fullName || expert.firstName || "Unnamed Expert"}
+                  </div>
+                ))
+              ) : (
+                <div className="px-3 py-2 text-gray-500">No experts found</div>
+              )}
+            </div>
+          )}
         </div>
       ),
       width: "w-28",
