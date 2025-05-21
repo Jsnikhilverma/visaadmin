@@ -30,6 +30,8 @@ const Login = () => {
         withCredentials: true,
       });
 
+      console.log(res.data);
+
       if (res.data.message === "Login successful") {
         const token = res.data.token;
         const userData = res.data;

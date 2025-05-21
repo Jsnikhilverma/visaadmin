@@ -13,6 +13,7 @@ import AudioPackage from "@/pages/dashboard/audioPackage/AudioPackage";
 import CoverLetterForm from "@/pages/dashboard/tamplates/CoverLetter"
 import NOCForm from "@/pages/dashboard/tamplates/noc"
 import SponsorshipLetterForm from "@/pages/dashboard/tamplates/SponsorshipLetter"
+import Documents from "@/pages/dashboard/documents/Documents";
 
 const iconClass = "w-5 h-5 text-inherit";
 
@@ -121,6 +122,16 @@ export const routes = [
         element: (
           <PrivateRoute>
             <NOCForm />
+          </PrivateRoute>
+        ),
+      },
+        {
+        icon: <HomeIcon className={iconClass} />,
+        name: "Documents",
+        path: "/documents", // Fixed path
+        element: (
+          <PrivateRoute>
+            <Documents />
           </PrivateRoute>
         ),
       },
