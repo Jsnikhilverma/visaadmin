@@ -5,7 +5,7 @@ import PrivateRoute from "@/components/PrivateRoute";
 import Allexperts from "@/pages/dashboard/expert/allexperts"
 import Audiobooks from "@/pages/dashboard/audio/Audiobooks";
 import VideoBooks from "@/pages/dashboard/video/VideoBook";
-import { AudioLinesIcon, VideoIcon } from "lucide-react";
+import { AudioLinesIcon, UserCheck2Icon, VideoIcon } from "lucide-react";
 import Users from "@/pages/dashboard/users/users";
 import FreeAudiobooks from "@/pages/dashboard/audioFree/FreeAudiobooks";
 // import CreateTestimonial from "@/pages/dashboard/testimonials/CreateTestimonial";
@@ -14,8 +14,11 @@ import CoverLetterForm from "@/pages/dashboard/tamplates/CoverLetter"
 import NOCForm from "@/pages/dashboard/tamplates/noc"
 import SponsorshipLetterForm from "@/pages/dashboard/tamplates/SponsorshipLetter"
 import Documents from "@/pages/dashboard/documents/Documents";
+import SettingForm from "@/pages/dashboard/Settings";
+// import Cookies from "js-cookie";
 
 const iconClass = "w-5 h-5 text-inherit";
+// const userType =Cookies.get("userType");
 
 export const routes = [
   {
@@ -26,6 +29,7 @@ export const routes = [
         icon: <HomeIcon className={iconClass} />,
         name: "Dashboard",
         path: "/home", // Fixed path
+        
         element: (
           <PrivateRoute>
             <Home />
@@ -37,6 +41,7 @@ export const routes = [
         icon: <UserIcon className={iconClass} />,
         name: "All Users",
         path: "/all-users", // Fixed path
+         type:"admin",
         element: (
           <PrivateRoute>
             <Users />
@@ -47,6 +52,7 @@ export const routes = [
         icon: <AudioLinesIcon className={iconClass} />,
         name: "All Kycs",
         path: "/all-Kycs", // Fixed path
+         
         element: (
           <PrivateRoute>
             <Audiobooks />
@@ -58,6 +64,7 @@ export const routes = [
         icon: <AudioLinesIcon className={iconClass} />,
         name: "Apply Passports",
         path: "/apply-passports", // Fixed path
+        
         element: (
           <PrivateRoute>
             <AudioPackage/>
@@ -68,6 +75,7 @@ export const routes = [
         icon: <AudioLinesIcon className={iconClass} />,
         name: "Passport",
         path: "/passport", // Fixed path
+         
         element: (
           <PrivateRoute>
             <FreeAudiobooks/>
@@ -78,6 +86,7 @@ export const routes = [
         icon: <VideoIcon className={iconClass} />,
         name: "Apply Visa",
         path: "/apply-visa", // Fixed path
+        
         element: (
           <PrivateRoute>
             <VideoBooks />
@@ -89,6 +98,8 @@ export const routes = [
         icon: <UserIcon className={iconClass} />,
         name: "Add Experts",
         path: "/allexperts", // Fixed path
+         type:"admin",
+      
         element: (
           <PrivateRoute>
             <Allexperts />
@@ -105,10 +116,12 @@ export const routes = [
       //     </PrivateRoute>
       //   ),
       // },
+      
       {
         icon: <HomeIcon className={iconClass} />,
         name: "Cover Letter",
         path: "/Coverletter", // Fixed path
+         type:"expert",
         element: (
           <PrivateRoute>
             <CoverLetterForm />
@@ -119,6 +132,7 @@ export const routes = [
         icon: <HomeIcon className={iconClass} />,
         name: "NOC",
         path: "/nocForm", // Fixed path
+         type:"expert",
         element: (
           <PrivateRoute>
             <NOCForm />
@@ -129,6 +143,7 @@ export const routes = [
         icon: <HomeIcon className={iconClass} />,
         name: "Documents",
         path: "/documents", // Fixed path
+         type:"expert",
         element: (
           <PrivateRoute>
             <Documents />
@@ -139,25 +154,23 @@ export const routes = [
         icon: <HomeIcon className={iconClass} />,
         name: "Sponsorship Letter",
         path: "/SponsorshipLetter", // Fixed path
+         type:"expert",
         element: (
           <PrivateRoute>
             <SponsorshipLetterForm  />
           </PrivateRoute>
         ),
       },
-
-
-
-      // {
-      //   icon: <UserCheck2Icon className={iconClass} />,
-      //   name: "All Vendors",
-      //   path: "/all-vendors", // Fixed path
-      //   element: (
-      //     <PrivateRoute>
-      //       <Vendors />
-      //     </PrivateRoute>
-      //   ),
-      // },
+      {
+        icon: <UserCheck2Icon className={iconClass} />,
+        name: "Settings",
+        path: "/settings", // Fixed path
+        element: (
+          <PrivateRoute>
+            <SettingForm />
+          </PrivateRoute>
+        ),
+      },
       // {
       //   icon: <ImageUpIcon className={iconClass} />,
       //   name: "Create Banner",

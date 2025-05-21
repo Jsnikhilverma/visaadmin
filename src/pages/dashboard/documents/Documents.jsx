@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  // Button,
   Card,
   CardBody,
-  // CardFooter,
   CardHeader,
-  // IconButton,
   Spinner,
   Tooltip,
   Typography,
@@ -13,171 +10,103 @@ import {
 import axios from "axios";
 import Cookies from "js-cookie";
 import CustomTable from "../../../components/CustomTable";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
-
-// import AddCustomBid from "./addCustomBid";
+import { TrashIcon } from "@heroicons/react/24/solid";
+import AddDocumentModal from "./addDocumentModal";
 
 function Documents() {
-  const [leads, setLeads] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [totalPages, setTotalPages] = useState(1);x
-  const token = Cookies.get("token");
-  // const [open, setOpen] = useState(false);
-  // const [bidId, setBidId] = useState(null);
-  
+  const [open, setOpen] = useState(false);
 
+  const token = Cookies.get("expertToken");
 
-  // const handleOpen = (id,projectTitle,min,max) =>{
+  const handleModalOpen = () => setOpen((prev) => !prev);
 
-  //   const bids ={
-  //     id:id,
-  //     projectTitle:projectTitle,
-  //     min:min,
-  //     max:max
-  //   }
+  const fetchDocuments = useCallback(async () => {
+    if (!token) return;
 
-  //   setOpen(!open);
-  //   setBidId(bids);
-   
-
-  // } 
-  
-  // const permissions = Cookies.get("permissions");
-  // const currentRoute = useLocation().pathname;
-
-  // console.log("currentRoute", currentRoute);
-
-  // const accessArray = JSON.parse(permissions);
-  // const accessRoutes = accessArray.map((route) => `/${route}`);
-  // console.log("accessRoutes", accessRoutes);
-
-  
-
-  const navigate = useNavigate(); // Initialize navigate
-
-  const fetchLeads = useCallback(
-    async () => {
-      if (!token) return;
-  
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}admin/allusers/users`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        console.log("leads", res.data);
-        setLeads(res.data); // ← updated here
-        // setTotalPages(data.meta.totalPages); // ← updated here
-      } catch (error) {
-        console.error("Error fetching leads:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [token]
-  );
-
-  
-  useEffect(() => {
-    if (token) fetchLeads(1);
-  }, [token, fetchLeads]);
-
-  
-
-  const deleteLead = async (id) => {
+    setLoading(true);
     try {
-      await axios.delete(`${import.meta.env.VITE_BASE_URL}admin/users/delete/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setLeads(leads.filter((lead) => lead.id !== id));
+      const res = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}admin/platform/getAllDocument`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setDocuments(res.data.data || []);
     } catch (error) {
-      console.error("Error deleting lead:", error);
+      console.error("Error fetching documents:", error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [token]);
 
-  const handleEdit = (id) => {
-    navigate(`/user-detail/${id}`); // Redirect to detail page with ID
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  const deleteDocument = async (id) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_BASE_URL}admin/platform/deleteDocument/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDocuments((prev) => prev.filter((doc) => doc._id !== id));
+    } catch (error) {
+      console.error("Error deleting document:", error);
+    }
   };
 
   const columns = [
     {
-      key: "profilePic",
-      label: "Profile",
+      key: "document_name",
+      label: "Document Name",
+      render: (row) => <div>{row.document_name}</div>,
+      width: "w-60",
+    },
+    {
+      key: "document_url",
+      label: "Document",
       render: (row) => (
-        <div className="w-10 h-10 rounded-full overflow-hidden">
-          {row.profilePic ? (
-            <img
-              src={`${import.meta.env.VITE_BASE_URL_IMAGE}${row.profilePic}`}
-              alt="Profile"
-              className="object-cover w-full h-full"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-              N/A
-            </div>
-          )}
-        </div>
+        <a
+          href={`${import.meta.env.VITE_BASE_URL_IMAGE}${row.document_url}`} 
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 underline"
+        >
+          View
+        </a>
       ),
-      width: "w-20",
-    },
-    {
-      key: "name",
-      label: "Name",
-      render: (row) => <div>{row.name || "N/A"}</div>,
-      width: "w-48",
-    },
-    {
-      key: "mobile",
-      label: "Mobile",
-      render: (row) => <div>{row.mobile || "N/A"}</div>,
       width: "w-40",
     },
     {
-      key: "email",
-      label: "Email",
-      render: (row) => <div>{row.email || "N/A"}</div>,
-      width: "w-60",
+      key: "created_at",
+      label: "Created At",
+      render: (row) =>
+        new Date(row.created_at).toLocaleString("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }),
+      width: "w-48",
     },
-    {
-      key: "address",
-      label: "Address",
-      render: (row) => <div>{row.address || "N/A"}</div>,
-      width: "w-60",
-    },
-    // {
-    //   key: "passportNumber",
-    //   label: "Passport Number",
-    //   render: (row) => <div>{row.passportNumber || "N/A"}</div>,
-    //   width: "w-60",
-    // },
     {
       key: "actions",
       label: "Actions",
       render: (row) => (
-        <div className="flex gap-2">
-          <Tooltip content="Edit">
-            <button onClick={() => handleEdit(row._id)}>
-              <PencilIcon className="h-5 w-5 text-blue-500" />
-            </button>
-          </Tooltip>
-          <Tooltip content="Delete">
-            <button onClick={() => deleteLead(row._id)}>
-              <TrashIcon className="h-5 w-5 text-red-500" />
-            </button>
-          </Tooltip>
-        </div>
+        <Tooltip content="Delete">
+          <button onClick={() => deleteDocument(row._id)}>
+            <TrashIcon className="h-5 w-5 text-red-500" />
+          </button>
+        </Tooltip>
       ),
-      width: "w-28",
+      width: "w-20",
     },
   ];
-  
 
   return (
     <Card>
@@ -185,13 +114,18 @@ function Documents() {
         <div className="flex items-center justify-between">
           <div>
             <Typography variant="h5" color="blue-gray">
-              User List
+              Document List
             </Typography>
             <Typography color="gray" className="mt-1 font-normal">
-              View the current active Users
+              View and manage uploaded documents
             </Typography>
           </div>
-          {/* <Button variant="gradient">Add New Lead</Button> */}
+          <button
+            onClick={handleModalOpen}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+          >
+            Add Document
+          </button>
         </div>
       </CardHeader>
 
@@ -201,74 +135,11 @@ function Documents() {
             <Spinner className="h-8 w-8 text-blue-500" />
           </div>
         ) : (
-          <CustomTable columns={columns} data={leads} />
-          
+          <CustomTable columns={columns} data={documents} />
         )}
       </CardBody>
 
-      {/* <CardFooter className="flex justify-between">
-        <Button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-
-        <div className="flex items-center gap-2">
-          {currentPage > 3 && (
-            <>
-              <IconButton
-                variant="text"
-                size="sm"
-                onClick={() => setCurrentPage(1)}
-              >
-                1
-              </IconButton>
-              {currentPage > 4 && <p>...</p>}
-            </>
-          )}
-
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const page = Math.max(1, currentPage - 2) + i;
-            if (page > totalPages) return null;
-            return (
-              <IconButton
-                key={page}
-                variant="text"
-                size="sm"
-                onClick={() => setCurrentPage(page)}
-                disabled={currentPage === page}
-              >
-                {page}
-              </IconButton>
-            );
-          })}
-
-          {currentPage < totalPages - 2 && (
-            <>
-              {currentPage < totalPages - 3 && <p>...</p>}
-              <IconButton
-                variant="text"
-                size="sm"
-                onClick={() => setCurrentPage(totalPages)}
-              >
-                {totalPages}
-              </IconButton>
-            </>
-          )}
-        </div>
-
-        <Button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </CardFooter>
-     */}
-      {/* <AddCustomBid open={open} handleOpen={handleOpen} bidId={bidId} /> */}
+      <AddDocumentModal open={open} handleOpen={handleModalOpen} fetchDocuments={fetchDocuments} />
     </Card>
   );
 }

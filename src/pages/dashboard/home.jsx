@@ -4,7 +4,6 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useEffect, useState, useCallback } from "react";
 
-
 // Button component
 const Button = ({
   children,
@@ -221,14 +220,29 @@ function Home() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("");
-  // const [country, setCountry] = useState("uk"); // if you want other filters
+  const [country, setCountry] = useState([]); // if you want other filters
   const [selectedExpert, setSelectedExpert] = useState("");
   const [selectedClient, setSelectedClient] = useState("");
   const [name, setName] = useState([]);
   const filtersTouched = useRef(false);
-
-
   const token = Cookies.get("token");
+
+  const fetchCountry = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        "https://countriesnow.space/api/v0.1/countries/iso",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("countries", res.data.data);
+      setCountry(res.data.data); // Make sure setCountry is defined in your component
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  }, []);
 
   const fetchLeads = useCallback(async () => {
     if (!token) return;
@@ -352,7 +366,7 @@ function Home() {
     if (selectedClient) params.clientName = selectedClient;
     if (selectedExpert) params.expertName = selectedExpert;
     // params.clientEmail = "jsnikhil00@gmail.com";
-    // params.country = "uk";
+    params.country = country;
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}admin/visa/filterApplications`,
@@ -377,18 +391,26 @@ function Home() {
     fetchUser();
     fetchAllKyc();
     fetchAllExperts();
-  }, [token, fetchLeads, fetchAllPassword, fetchAllKyc, fetchAllExperts, fetchUser]);
+    fetchCountry();
+  }, [
+    token,
+    fetchLeads,
+    fetchAllPassword,
+    fetchAllKyc,
+    fetchAllExperts,
+    fetchUser,
+    fetchCountry,
+  ]);
 
   // Trigger filter when any of these change
- useEffect(() => {
-  if (filtersTouched.current) {
-    handleFilter();
-  } else {
-    // Skip first render
-    filtersTouched.current = true;
-  }
-}, [status, startDate, endDate, selectedClient, selectedExpert]);
-
+  useEffect(() => {
+    if (filtersTouched.current) {
+      handleFilter();
+    } else {
+      // Skip first render
+      filtersTouched.current = true;
+    }
+  }, [status, startDate, endDate, selectedClient, selectedExpert]);
 
   return (
     <div className="space-y-8">
@@ -436,6 +458,20 @@ function Home() {
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
+        {/* Country Dropdown */}
+        {/* <select
+          className="border rounded-md p-2"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+        >
+          <option value="">Select Country</option>
+          {Array.isArray(country) &&
+            country.map((app) => (
+              <option key={app.Iso2} value={app.Iso2}>
+                {app.name}
+              </option>
+            ))}
+        </select> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -476,7 +512,6 @@ function Home() {
               </option>
             ))}
           </select>
-        
         </div>
       </div>
 
@@ -497,93 +532,96 @@ function Home() {
                 </CardDescription>
               </div>
             </CardHeader>
-           <CardContent>
-  <div className="rounded-md border">
-    {/* Table Header */}
-    <div className="grid grid-cols-6 border-b bg-muted/50 px-4 py-3 text-sm font-medium">
-      <div>Country / Visa Type</div>
-      <div>Travel & Return Date</div>
-      <div>Purpose</div>
-      <div>Status</div>
-      <div className="text-center">Priority</div>
-      <div className="text-right">Actions</div>
-    </div>
+            <CardContent>
+              <div className="rounded-md border">
+                {/* Table Header */}
+                <div className="grid grid-cols-6 border-b bg-muted/50 px-4 py-3 text-sm font-medium">
+                  <div>Country / Visa Type</div>
+                  <div>Travel & Return Date</div>
+                  <div>Purpose</div>
+                  <div>Status</div>
+                  <div className="text-center">Priority</div>
+                  <div className="text-right">Actions</div>
+                </div>
 
-    {/* Table Content */}
-    <div className="divide-y">
-      {applications.map((application) => (
-        <div
-          key={application._id}
-          className="grid grid-cols-6 items-center px-4 py-3 text-sm"
-        >
-          {/* Country / Visa Type */}
-          <div className="capitalize">
-            {application.country} / {application.visaType}
-          </div>
+                {/* Table Content */}
+                <div className="divide-y">
+                  {applications.map((application) => (
+                    <div
+                      key={application._id}
+                      className="grid grid-cols-6 items-center px-4 py-3 text-sm"
+                    >
+                      {/* Country / Visa Type */}
+                      <div className="capitalize">
+                        {application.country} / {application.visaType}
+                      </div>
 
-          {/* Travel & Return Date */}
-          <div>
-            {new Date(application.travelDate).toLocaleDateString()} -{" "}
-            {new Date(application.returnDate).toLocaleDateString()}
-          </div>
+                      {/* Travel & Return Date */}
+                      <div>
+                        {new Date(application.travelDate).toLocaleDateString()}{" "}
+                        -{" "}
+                        {new Date(application.returnDate).toLocaleDateString()}
+                      </div>
 
-          {/* Travel Purpose */}
-          <div className="truncate max-w-[200px]" title={application.travelPurpose}>
-            {application.travelPurpose}
-          </div>
+                      {/* Travel Purpose */}
+                      <div
+                        className="truncate max-w-[200px]"
+                        title={application.travelPurpose}
+                      >
+                        {application.travelPurpose}
+                      </div>
 
-          {/* Status */}
-          <div>
-            <div
-              className={cn(
-                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                application.status === "approved" &&
-                  "bg-green-100 text-green-800",
-                application.status === "pending" &&
-                  "bg-yellow-100 text-yellow-800",
-                application.status === "rejected" &&
-                  "bg-red-100 text-red-800"
-              )}
-            >
-              {application.status}
-            </div>
-          </div>
+                      {/* Status */}
+                      <div>
+                        <div
+                          className={cn(
+                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                            application.status === "approved" &&
+                              "bg-green-100 text-green-800",
+                            application.status === "pending" &&
+                              "bg-yellow-100 text-yellow-800",
+                            application.status === "rejected" &&
+                              "bg-red-100 text-red-800"
+                          )}
+                        >
+                          {application.status}
+                        </div>
+                      </div>
 
-          {/* Priority */}
-          <div className="text-center">
-            {application.priority ? "Yes" : "No"}
-          </div>
+                      {/* Priority */}
+                      <div className="text-center">
+                        {application.priority ? "Yes" : "No"}
+                      </div>
 
-          {/* Actions */}
-          <div className="text-right">
-            <Link href={`/visa-detail/${application._id}`}>
-              <Button variant="ghost" size="sm">
-                View
-              </Button>
-            </Link>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
+                      {/* Actions */}
+                      <div className="text-right">
+                        <Link href={`/visa-detail/${application._id}`}>
+                          <Button variant="ghost" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-  {/* Pagination Footer */}
-  <div className="flex items-center justify-between mt-4">
-    <div className="text-sm text-muted-foreground">
-      Showing <strong>1-{applications.length}</strong> of{" "}
-      <strong>{applications.length}</strong> applications
-    </div>
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" disabled>
-        Previous
-      </Button>
-      <Button variant="outline" size="sm">
-        Next
-      </Button>
-    </div>
-  </div>
-</CardContent>
-
+              {/* Pagination Footer */}
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing <strong>1-{applications.length}</strong> of{" "}
+                  <strong>{applications.length}</strong> applications
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled>
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
 
